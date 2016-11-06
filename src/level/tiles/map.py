@@ -19,9 +19,9 @@ class Tilemap(object):
                 for x in range(self.width):
                     tile_id = self.map[x + y * self.width]
                     if tile_id == WALL.getId():
-                        f.write("##")
+                        f.write("###")
                     elif tile_id == ROAD.getId():
-                        f.write("  ")
+                        f.write("   ")
                 f.write("\n")
 
     def carve_level(self, leafs):
@@ -46,6 +46,7 @@ class Tilemap(object):
         leafs.append(root)
 
         did_split = True
+        biggest = None
 
         while did_split:
             did_split = False
@@ -59,7 +60,11 @@ class Tilemap(object):
                             assert l.right_child
                             leafs.append(l.left_child)
                             leafs.append(l.right_child)
+                            if l.width <= MAX_LEAF_SIZE and l.height <= MAX_LEAF_SIZE and 0.8 <= l.width / l.height <= 1.25 and (biggest is None or l.width*l.height > biggest.width*biggest.height):
+                                biggest = l
                             did_split = True
+        assert biggest
+        biggest.create_room(True)
         root.create_rooms()
         self.carve_level(leafs)
         self.print_level()

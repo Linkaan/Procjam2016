@@ -67,6 +67,16 @@ class Leaf(object):
             elif h > 0:
                 self.halls.append(Rect(point1[0], point1[1], 1, abs(h)))
 
+    def create_room(self, fill):
+        if self.room:
+            return
+        if fill:
+            room_size = (self.width - 2, self.height - 2)
+        else:
+            room_size = (random.randint(MIN_ROOM_WIDTH, self.width - 2), random.randint(MIN_ROOM_HEIGHT, self.height - 2))
+        room_pos = (random.randint(1, self.width - room_size[0] - 1), random.randint(1, self.height - room_size[1] - 1))
+        self.room = Rect(self.x + room_pos[0], self.y + room_pos[1], room_size[0], room_size[1])
+
     def create_rooms(self):
         if self.left_child or self.right_child:
             if self.left_child:
@@ -76,9 +86,7 @@ class Leaf(object):
             if self.left_child and self.right_child:
                 self.create_hall(self.left_child.get_room(), self.right_child.get_room())
         else:
-            room_size = (random.randint(MIN_ROOM_WIDTH, self.width - 2), random.randint(MIN_ROOM_HEIGHT, self.height - 2))
-            room_pos = (random.randint(1, self.width - room_size[0] - 1), random.randint(1, self.height - room_size[1] - 1))
-            self.room = Rect(self.x + room_pos[0], self.y + room_pos[1], room_size[0], room_size[1])
+            self.create_room(False)
 
     def split(self):
         if self.left_child or self.right_child:

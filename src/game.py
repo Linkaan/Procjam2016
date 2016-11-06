@@ -15,7 +15,7 @@ class Game(object):
         self.clock = pygame.time.Clock()
         self.fps = 60.0
         self.keys = pygame.key.get_pressed()
-        self.level = Level(32, 32)
+        self.level = Level(WIDTH, HEIGHT)
         self.camera_x = 0
         self.camera_y = 0
         self.running = True
