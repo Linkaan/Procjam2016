@@ -21,5 +21,5 @@ class Tile:
         pass
 
     @abstractproperty
-    def render(self, level, surface, x, y):
+    def render(self, surface, x, y):
         pass

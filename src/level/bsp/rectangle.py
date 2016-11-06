@@ -9,9 +9,6 @@ class Rect(object):
         self.h = h
         self.center = (int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2))
 
-    def size(self):
-        return self.w * self.h
-
     def contains(self, x, y):
         if (self.w | self.h) < 0:
             return False

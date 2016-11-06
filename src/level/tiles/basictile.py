@@ -6,11 +6,7 @@ class BasicTile(Tile):
         super().__init__(tileid, False)
         self.tex = tex
 
-    def render(self, level, surface, x, y):
-        '''
-        if 0 > x or x >= level.width << 5 or 0 > y or y >= level.height << 5:
-            return
-        '''
+    def render(self, surface, x, y):
         surface.blit(self.tex.img, (x, y, 32, 32))
 
     def tick(self):

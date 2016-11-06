@@ -32,10 +32,8 @@ class Level(object):
         self.x_offset = x_offset;
         self.y_offset = y_offset;
 
-        #print("%d, %d" % (x_offset, y_offset))
-
         for y in range(y_offset >> 5, (y_offset + SCREEN_SIZE[1] >> 5) + 1):
             for x in range(x_offset >> 5, (x_offset + SCREEN_SIZE[0] >> 5) + 1):
                 if 0 > x or x >= self.width or 0 > y or y >= self.height:
                     continue
-                Tile.tiles[self.tilemap.map[x + y * self.width]].render(self, surface, (x << 5) - x_offset, (y << 5) - y_offset)
+                Tile.tiles[self.tilemap.map[x + y * self.width]].render(surface, (x << 5) - x_offset, (y << 5) - y_offset)
