@@ -4,10 +4,12 @@ import random
 from GameConfig import *
 from level.tiles.tiles import *
 from level.bsp.leaf import Leaf
+from entity.pickups.bazooka_pickup import BazookaPickup
 
 class Tilemap(object):
 
-    def __init__(self, width, height):
+    def __init__(self, level, width, height):
+        self.level = level
         self.width = width
         self.height = height
         self.map = np.ndarray((self.width*self.height,),int)
@@ -35,6 +37,13 @@ class Tilemap(object):
                 for y in range(l.room.y1, l.room.y2):
                     for x in range(l.room.x1, l.room.x2):
                         self.map[x + y * self.width] = ROAD.getId()
+
+    def populate_room(self, leafs, biggest):
+        for l in leafs:
+            if l.room:# < 0.1:
+                if biggest.room.intersects(l.room):
+                    continue
+                self.level.add_entity(BazookaPickup(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
 
     def generate_map(self):
         for y in range(self.height):
@@ -66,5 +75,6 @@ class Tilemap(object):
         assert biggest
         biggest.create_room(True)
         root.create_rooms()
+        self.populate_room(leafs, biggest)
         self.carve_level(leafs)
         self.print_level()

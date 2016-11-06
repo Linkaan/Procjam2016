@@ -8,15 +8,19 @@ class Level(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tilemap = Tilemap(self.width, self.height)
-        #self.offset_x = int((self.width << 5) / 2 - SCREEN_SIZE[0] / 2)
-        #self.offset_y = int((self.height << 5) / 2 - SCREEN_SIZE[1] / 2)
+        self.entities = []
+        self.tilemap = Tilemap(self, self.width, self.height)
         self.x_offset = 0
         self.y_offset = 0
+
+    def add_entity(self, entity):
+        self.entities.append(entity)
 
     def tick(self):
         for tile in Tile.tiles:
             tile.tick()
+        for entity in self.entities:
+            entity.tick()
 
     def render(self, surface, x_offset, y_offset):
         from graphics.textures import Textures
@@ -37,3 +41,7 @@ class Level(object):
                 if 0 > x or x >= self.width or 0 > y or y >= self.height:
                     continue
                 Tile.tiles[self.tilemap.map[x + y * self.width]].render(surface, (x << 5) - x_offset, (y << 5) - y_offset)
+
+        for entity in self.entities:
+            # TODO ignore entities not on screen
+            entity.render(surface, x_offset, y_offset)
