@@ -40,7 +40,7 @@ class Tilemap(object):
 
     def populate_room(self, leafs, biggest):
         for l in leafs:
-            if l.room:# < 0.1:
+            if l.room and random.random() < 0.1:
                 if biggest.room.intersects(l.room):
                     continue
                 self.level.add_entity(BazookaPickup(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
