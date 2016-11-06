@@ -1,5 +1,6 @@
 import pygame
 from GameConfig import *
+from level.tiles.tiles import *
 from level.tiles.tile import Tile
 from level.tiles.map import Tilemap
 
@@ -15,9 +16,12 @@ class Level(object):
 
     def add_entity(self, entity):
         self.entities.append(entity)
+        print(entity)
 
     def tick(self):
         for tile in Tile.tiles:
+            if not tile:
+                break
             tile.tick()
         for entity in self.entities:
             entity.tick()
@@ -45,3 +49,8 @@ class Level(object):
         for entity in self.entities:
             # TODO ignore entities not on screen
             entity.render(surface, x_offset, y_offset)
+
+    def get_tile(self, x, y):
+        if 0 > x or x >= self.width or 0 > y or y >= self.height:
+            return VOID
+        return Tile.tiles[self.tilemap.map[x + y * self.width]]

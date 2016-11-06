@@ -6,6 +6,7 @@ from graphics.textures import *
 from level.level import Level
 from graphics.sprite.basicsprite import BasicSprite
 from graphics.sprite.animatedsprite import AnimatedSprite
+from entity.mob.unit import Unit
 
 class Game(object):
 
@@ -24,10 +25,11 @@ class Game(object):
     def load(self):
         # load game here
         load_textures()
+        self.level = Level(WIDTH, HEIGHT)
         self.testsprite1 = AnimatedSprite("../res/soldier_spritesheet.png", 0, 0, 10)
         self.testsprite2 = AnimatedSprite("../res/enemy_spritesheet.png", 32, 0, 5)
         self.testsprite3 = BasicSprite("../res/bazooka.png", 64, 0)
-        self.level = Level(WIDTH, HEIGHT)
+        self.testunit = Unit(self.level, 64, 64)
         self.running = True
 
     def event_loop(self):
@@ -60,8 +62,10 @@ class Game(object):
         if self.camera_y > ((self.level.height << 5) - SCREEN_SIZE[1]):
             self.camera_y = ((self.level.height << 5) - SCREEN_SIZE[1])
 
+        self.level.tick()
         self.testsprite1.tick()
         self.testsprite2.tick()
+        self.testunit.tick()
 
     def render(self):
         # render game here
@@ -72,6 +76,7 @@ class Game(object):
         self.testsprite1.render(self.screen, x_offset, y_offset)
         self.testsprite2.render(self.screen, x_offset, y_offset)
         self.testsprite3.render(self.screen, x_offset, y_offset)
+        self.testunit.render(self.screen, x_offset, y_offset)
         pygame.display.flip()
 
     def game_loop(self):

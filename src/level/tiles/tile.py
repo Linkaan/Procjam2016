@@ -13,7 +13,7 @@ class Tile:
         self.solid = is_solid
         self.tiles[tileid] = self
 
-    def getId(self):
+    def get_id(self):
         return self.tileid
 
     @abstractproperty

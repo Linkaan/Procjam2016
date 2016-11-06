@@ -11,11 +11,15 @@ class AnimatedSprite(Sprite):
         self.updates = 0
         self.current_frame = 0
         self.load(self.current_frame)
+        self.flipped = False
 
     def set_flipped(self, is_flipped):
+        if self.flipped == is_flipped:
+            return
+        self.flipped = is_flipped
         if is_flipped:
             for s in enumerate(self.src_sprites):
-                self.sprites[s[0]] = pygame.transform.rotate(s[1], 180)
+                self.sprites[s[0]] = pygame.transform.flip(s[1], True, False)
         else:
             self.sprites = self.src_sprites[:]
 

@@ -5,6 +5,7 @@ from GameConfig import *
 from level.tiles.tiles import *
 from level.bsp.leaf import Leaf
 from entity.pickups.bazooka_pickup import BazookaPickup
+from entity.mob.unit import Unit
 
 class Tilemap(object):
 
@@ -20,9 +21,9 @@ class Tilemap(object):
             for y in range(self.height):
                 for x in range(self.width):
                     tile_id = self.map[x + y * self.width]
-                    if tile_id == WALL.getId():
+                    if tile_id == WALL.get_id():
                         f.write("###")
-                    elif tile_id == ROAD.getId():
+                    elif tile_id == ROAD.get_id():
                         f.write("   ")
                 f.write("\n")
 
@@ -32,23 +33,24 @@ class Tilemap(object):
                 for r in l.halls:
                     for y in range(r.y1, r.y2):
                         for x in range(r.x1, r.x2):
-                            self.map[x + y * self.width] = ROAD.getId()
+                            self.map[x + y * self.width] = ROAD.get_id()
             if l.room:
                 for y in range(l.room.y1, l.room.y2):
                     for x in range(l.room.x1, l.room.x2):
-                        self.map[x + y * self.width] = ROAD.getId()
+                        self.map[x + y * self.width] = ROAD.get_id()
 
     def populate_room(self, leafs, biggest):
         for l in leafs:
-            if l.room and random.random() < 0.1:
+            if l.room:
                 if biggest.room.intersects(l.room):
+                    self.level.add_entity(Unit(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
                     continue
                 self.level.add_entity(BazookaPickup(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
 
     def generate_map(self):
         for y in range(self.height):
             for x in range(self.width):
-                self.map[x + y * self.width] = WALL.getId()
+                self.map[x + y * self.width] = WALL.get_id()
         leafs = []
 
         root = Leaf(0, 0, self.width, self.height)
