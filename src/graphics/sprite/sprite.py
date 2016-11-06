@@ -9,6 +9,7 @@ class Sprite(pygame.sprite.Sprite):
     __metaclass__ = ABCMeta
 
     def __init__(self, path, x, y):
+        super().__init__()
         self.x = x
         self.y = y
         self.sprite_group = pygame.sprite.RenderPlain(self)
@@ -17,6 +18,10 @@ class Sprite(pygame.sprite.Sprite):
 
     def load(self, sprite_num):
         self.image = self.sprites[sprite_num]
+
+    def set_position(self, x, y):
+        self.x = x
+        self.y = y
 
     @abstractmethod
     def tick(self):

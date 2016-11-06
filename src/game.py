@@ -2,7 +2,10 @@ import os
 import sys
 import pygame
 from GameConfig import *
+from graphics.textures import *
 from level.level import Level
+from graphics.sprite.basicsprite import BasicSprite
+from graphics.sprite.animatedsprite import AnimatedSprite
 
 class Game(object):
 
@@ -15,14 +18,15 @@ class Game(object):
         self.clock = pygame.time.Clock()
         self.fps = 60.0
         self.keys = pygame.key.get_pressed()
-        self.level = Level(WIDTH, HEIGHT)
         self.camera_x = 0
         self.camera_y = 0
-        self.running = True
 
     def load(self):
         # load game here
-        pass
+        load_textures()
+        self.player = BasicSprite("../res/soldier_spritesheet.png", 0, 0)
+        self.level = Level(WIDTH, HEIGHT)
+        self.running = True
 
     def event_loop(self):
         for event in pygame.event.get():
@@ -60,7 +64,9 @@ class Game(object):
         x_offset = self.camera_x
         y_offset = self.camera_y
         self.level.render(self.screen, x_offset, y_offset)
-        pygame.display.update()
+        self.player.render(self.screen, 0, 0)
+        self.screen.blit(self.player.spritesheet.sheet, (32, 0, 32, 32))        
+        pygame.display.flip()
 
     def game_loop(self):
         while self.running:
