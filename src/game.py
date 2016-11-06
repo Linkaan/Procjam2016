@@ -24,7 +24,9 @@ class Game(object):
     def load(self):
         # load game here
         load_textures()
-        self.player = BasicSprite("../res/soldier_spritesheet.png", 0, 0)
+        self.testsprite1 = AnimatedSprite("../res/soldier_spritesheet.png", 0, 0, 10)
+        self.testsprite2 = AnimatedSprite("../res/enemy_spritesheet.png", 32, 0, 5)
+        self.testsprite3 = BasicSprite("../res/bazooka.png", 64, 0)
         self.level = Level(WIDTH, HEIGHT)
         self.running = True
 
@@ -58,14 +60,18 @@ class Game(object):
         if self.camera_y > ((self.level.height << 5) - SCREEN_SIZE[1]):
             self.camera_y = ((self.level.height << 5) - SCREEN_SIZE[1])
 
+        self.testsprite1.tick()
+        self.testsprite2.tick()
+
     def render(self):
         # render game here
         self.screen.fill(self.BLACK)
         x_offset = self.camera_x
         y_offset = self.camera_y
         self.level.render(self.screen, x_offset, y_offset)
-        self.player.render(self.screen, 0, 0)
-        self.screen.blit(self.player.spritesheet.sheet, (32, 0, 32, 32))        
+        self.testsprite1.render(self.screen, x_offset, y_offset)
+        self.testsprite2.render(self.screen, x_offset, y_offset)
+        self.testsprite3.render(self.screen, x_offset, y_offset)
         pygame.display.flip()
 
     def game_loop(self):

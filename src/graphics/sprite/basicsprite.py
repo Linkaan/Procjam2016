@@ -5,7 +5,7 @@ class BasicSprite(Sprite):
 
     def __init__(self, path, x, y):
         super().__init__(path, x, y)
-        self.load(1)
+        self.load(0)
 
     def render(self, screen, x_offset, y_offset):
         x = self.x - x_offset + 16
