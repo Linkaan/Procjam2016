@@ -1,7 +1,9 @@
+import sys
+import random
+import base64
 import pygame
 from GameConfig import *
 from level.tiles.tiles import *
-from level.pathfinding.node import Node
 from level.tiles.tile import Tile
 from level.tiles.map import Tilemap
 
@@ -11,8 +13,9 @@ class Level(object):
         self.width = width
         self.height = height
         self.entities = []
+        self.seed = "MjY4NzQ3MDYzODcyODcwMzY4NA=="#base64.b64encode(str(random.randint(0, sys.maxsize)).encode('ascii')).decode('ascii')
+        random.seed(self.seed)
         self.tilemap = Tilemap(self, self.width, self.height)
-        self.nodes = {}
         self.graph = {}
         self.x_offset = 0
         self.y_offset = 0
@@ -58,24 +61,18 @@ class Level(object):
         for y in range(0, self.height):
             for x in range(0, self.width):
                 if not Tile.tiles[self.tilemap.map[x + y * self.width]].solid:
-                    self.nodes[(x, y)] = Node((x, y))
-
-        for key, node in self.nodes.items():
-            assert isinstance(node, Node)
-            for i in range(8):
-                xi = (i % 3) - 1
-                yi = int(i / 3) - 1
-                at = self.get_node(key[0] + xi, key[1] + yi)
-                if at:
-                    arr = self.graph.get(key)
-                    if not arr:
-                        arr = set()
-                    arr.add(at)
-                    self.graph[key] = arr
-        #print(self.graph)
-
-    def get_node(self, x, y):
-        return self.nodes.get((x, y))
+                    for i in range(8):
+                        xi = (i % 3) - 1
+                        yi = int(i / 3) - 1
+                        a = (x + xi, y + yi)
+                        at = self.get_tile(a[0], a[1])
+                        if not at.solid:
+                            arr = self.graph.get((x, y))
+                            if not arr:
+                                arr = set()
+                            arr.add(a)
+                            self.graph[(x, y)] = arr
+        #print(self.graph[(20, 25)])
 
     def get_tile(self, x, y):
         assert isinstance(x, int) and isinstance(y, int)

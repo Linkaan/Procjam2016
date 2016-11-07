@@ -7,7 +7,7 @@ from graphics.sprite.animatedsprite import AnimatedSprite
 class Unit(Mob):
 
     def __init__(self, level, x, y):
-        super().__init__(level, x, y, 1, 100)
+        super().__init__(level, x, y, 2, 100)
         self.vsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
         self.hsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
         self.sprite = self.hsprite
@@ -26,20 +26,18 @@ class Unit(Mob):
         self.goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
         start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         if self.goal != self.last_goal:
-            current = self.level.get_node(start[0], start[1])
-            end = self.level.get_node(self.goal[0], self.goal[1])
-            if current and end:
-                print("(%d, %d) and (%d, %d)" % (current.pos[0], current.pos[1], end.pos[0], end.pos[1]))
-                self.path = find_path(self.level, current, end)
+            if not self.level.get_tile(start[0], start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
+                print("(%d, %d) and (%d, %d)" % (start[0], start[1], self.goal[0], self.goal[1]))
+                self.path = find_path(self.level, start, self.goal)
                 self.last_goal = self.goal
 
         if start != self.last_goal:
             if self.path:
                 if len(self.path) > 0:
-                    pos = self.path[-1].pos
+                    pos = self.path[-1]
                     if start == pos:
                         self.path.pop()
-                        pos = self.path[-1].pos
+                        pos = self.path[-1]
                     pos = (pos[0] << 5, pos[1] << 5)
                     if self.x < pos[0]:
                         xa += self.speed

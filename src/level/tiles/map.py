@@ -18,6 +18,7 @@ class Tilemap(object):
 
     def print_level(self):
         with open("level.dat", "w") as f:
+            f.write("RNG SEED USED: " + self.level.seed + "\n")
             for y in range(self.height):
                 for x in range(self.width):
                     tile_id = self.map[x + y * self.width]
@@ -43,7 +44,7 @@ class Tilemap(object):
         for l in leafs:
             if l.room:
                 if biggest.room.intersects(l.room):
-                    #self.level.add_entity(Unit(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
+                    self.level.add_entity(Unit(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
                     continue
                 self.level.add_entity(BazookaPickup(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
 

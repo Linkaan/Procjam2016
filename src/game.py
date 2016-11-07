@@ -18,7 +18,7 @@ class Game(object):
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
         self.clock = pygame.time.Clock()
-        self.fps = 60.0
+        self.fps = 30.0
         self.keys = pygame.key.get_pressed()
         self.camera_x = 0
         self.camera_y = 0
