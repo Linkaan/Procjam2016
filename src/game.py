@@ -4,6 +4,7 @@ import pygame
 from GameConfig import *
 from graphics.textures import *
 from level.level import Level
+from level.pathfinding.findpath import find_path
 from graphics.sprite.basicsprite import BasicSprite
 from graphics.sprite.animatedsprite import AnimatedSprite
 from entity.mob.unit import Unit
@@ -26,6 +27,8 @@ class Game(object):
         # load game here
         load_textures()
         self.level = Level(WIDTH, HEIGHT)
+        #path = find_path(self.level, (3, 3), (12, 12))
+        #print(len(path))
         self.testsprite1 = AnimatedSprite("../res/soldier_spritesheet.png", 0, 0, 10)
         self.testsprite2 = AnimatedSprite("../res/enemy_spritesheet.png", 32, 0, 5)
         self.testsprite3 = BasicSprite("../res/bazooka.png", 64, 0)

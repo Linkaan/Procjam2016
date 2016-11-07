@@ -1,6 +1,7 @@
 import pygame
 from GameConfig import *
 from level.tiles.tiles import *
+from level.pathfinding.node import Node
 from level.tiles.tile import Tile
 from level.tiles.map import Tilemap
 
@@ -11,8 +12,11 @@ class Level(object):
         self.height = height
         self.entities = []
         self.tilemap = Tilemap(self, self.width, self.height)
+        self.nodes = {}
+        self.graph = {}
         self.x_offset = 0
         self.y_offset = 0
+        self.build_graph()
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -50,7 +54,31 @@ class Level(object):
             # TODO ignore entities not on screen
             entity.render(surface, x_offset, y_offset)
 
+    def build_graph(self):
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                if not Tile.tiles[self.tilemap.map[x + y * self.width]].solid:
+                    self.nodes[(x, y)] = Node((x, y))
+
+        for key, node in self.nodes.items():
+            assert isinstance(node, Node)
+            for i in range(8):
+                xi = (i % 3) - 1
+                yi = int(i / 3) - 1
+                at = self.get_node(key[0] + xi, key[1] + yi)
+                if at:
+                    arr = self.graph.get(key)
+                    if not arr:
+                        arr = set()
+                    arr.add(at)
+                    self.graph[key] = arr
+        #print(self.graph)
+
+    def get_node(self, x, y):
+        return self.nodes.get((x, y))
+
     def get_tile(self, x, y):
+        assert isinstance(x, int) and isinstance(y, int)
         if 0 > x or x >= self.width or 0 > y or y >= self.height:
             return VOID
         return Tile.tiles[self.tilemap.map[x + y * self.width]]

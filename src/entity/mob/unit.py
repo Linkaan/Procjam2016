@@ -1,5 +1,7 @@
 import random
+import pygame
 from entity.mob.mob import Mob
+from level.pathfinding.findpath import find_path
 from graphics.sprite.animatedsprite import AnimatedSprite
 
 class Unit(Mob):
@@ -12,24 +14,41 @@ class Unit(Mob):
         self.updates = 0
         self.next = 0
         self.goal = (x, y)
+        self.last_goal = self.goal
+        self.path = None
+        self.x_offset = 0
+        self.y_offset = 0
 
     def tick(self):
         xa = 0
         ya = 0
-        if self.updates - self.next >= 0: # and (self.x, self.y) == self.goal
-             self.next += random.randint(60, 450)
-             self.goal = (-1, -1)
-             while self.level.get_tile(self.goal[0]>>5, self.goal[1]>>5).solid:
-                 self.goal = (self.x + (random.randint(-5, 5)<<5), self.y + (random.randint(-5, 5)<<5))
+        mouse_pos = pygame.mouse.get_pos()
+        self.goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
+        start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
+        if self.goal != self.last_goal:
+            current = self.level.get_node(start[0], start[1])
+            end = self.level.get_node(self.goal[0], self.goal[1])
+            if current and end:
+                print("(%d, %d) and (%d, %d)" % (current.pos[0], current.pos[1], end.pos[0], end.pos[1]))
+                self.path = find_path(self.level, current, end)
+                self.last_goal = self.goal
 
-        if self.x < self.goal[0]:
-            xa += self.speed
-        if self.x > self.goal[0]:
-            xa -= self.speed
-        if self.y < self.goal[1]:
-            ya += self.speed
-        if self.y > self.goal[1]:
-            ya -= self.speed
+        if start != self.last_goal:
+            if self.path:
+                if len(self.path) > 0:
+                    pos = self.path[-1].pos
+                    if start == pos:
+                        self.path.pop()
+                        pos = self.path[-1].pos
+                    pos = (pos[0] << 5, pos[1] << 5)
+                    if self.x < pos[0]:
+                        xa += self.speed
+                    if self.x > pos[0]:
+                        xa -= self.speed
+                    if self.y < pos[1]:
+                        ya += self.speed
+                    if self.y > pos[1]:
+                        ya -= self.speed
 
         if xa or ya:
             self.moving = True
@@ -52,4 +71,6 @@ class Unit(Mob):
         self.updates += 1
 
     def render(self, surface, x_offset, y_offset):
+        self.x_offset = x_offset
+        self.y_offset = y_offset
         self.sprite.render(surface, x_offset, y_offset)
