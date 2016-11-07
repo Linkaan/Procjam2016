@@ -16,5 +16,5 @@ class Pickup(Entity):
         pass
 
     @abstractmethod
-    def render(self, surface, x_offset, y_offset):
-        self.sprite.render(surface, x_offset, y_offset)
+    def render(self, x_offset, y_offset):
+        self.sprite.render(x_offset, y_offset)

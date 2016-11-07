@@ -15,5 +15,5 @@ class Entity:
         pass
 
     @abstractproperty
-    def render(self, surface, x_offset, y_offset):
+    def render(self, x_offset, y_offset):
         pass

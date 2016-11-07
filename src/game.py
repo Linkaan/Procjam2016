@@ -29,10 +29,11 @@ class Game(object):
         self.level = Level(WIDTH, HEIGHT)
         #path = find_path(self.level, (3, 3), (12, 12))
         #print(len(path))
-        self.testsprite1 = AnimatedSprite("../res/soldier_spritesheet.png", 0, 0, 10)
-        self.testsprite2 = AnimatedSprite("../res/enemy_spritesheet.png", 32, 0, 5)
-        self.testsprite3 = BasicSprite("../res/bazooka.png", 64, 0)
-        self.testunit = Unit(self.level, 64, 64)
+        #self.testsprite1 = AnimatedSprite(self.level.sprite_group, "../res/soldier_spritesheet.png", 0, 0, 10)
+        #self.testsprite2 = AnimatedSprite(self.level.sprite_group, "../res/enemy_spritesheet.png", 32, 0, 5)
+        #self.testsprite3 = BasicSprite(self.level.sprite_group, "../res/bazooka.png", 64, 0)
+        self.testunit1 = Unit(self.level, 96, 64)
+        self.testunit2 = Unit(self.level, 96, 32*4)
         self.running = True
 
     def event_loop(self):
@@ -66,9 +67,10 @@ class Game(object):
             self.camera_y = ((self.level.height << 5) - SCREEN_SIZE[1])
 
         self.level.tick()
-        self.testsprite1.tick()
-        self.testsprite2.tick()
-        self.testunit.tick()
+        #self.testsprite1.tick()
+        #self.testsprite2.tick()
+        self.testunit1.tick()
+        self.testunit2.tick()
 
     def render(self):
         # render game here
@@ -76,10 +78,11 @@ class Game(object):
         x_offset = self.camera_x
         y_offset = self.camera_y
         self.level.render(self.screen, x_offset, y_offset)
-        self.testsprite1.render(self.screen, x_offset, y_offset)
-        self.testsprite2.render(self.screen, x_offset, y_offset)
-        self.testsprite3.render(self.screen, x_offset, y_offset)
-        self.testunit.render(self.screen, x_offset, y_offset)
+        #self.testsprite2.render(x_offset, y_offset)
+        #self.testsprite3.render(x_offset, y_offset)
+        #self.testsprite1.render(x_offset, y_offset)
+        self.testunit1.render(x_offset, y_offset)
+        self.testunit2.render(x_offset, y_offset)
         pygame.display.flip()
 
     def game_loop(self):

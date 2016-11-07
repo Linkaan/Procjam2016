@@ -8,6 +8,8 @@ class Dummy(Mob):
         super().__init__(level, x, y, 1, 100)
         self.vsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
         self.hsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
+        self.vsprite.add_to_group(level.sprite_group)
+        self.hsprite.add_to_group(level.sprite_group)
         self.sprite = self.hsprite
         self.updates = 0
         self.next = 0
@@ -51,5 +53,5 @@ class Dummy(Mob):
             self.sprite.load(0)
         self.updates += 1
 
-    def render(self, surface, x_offset, y_offset):
-        self.sprite.render(surface, x_offset, y_offset)
+    def render(self, x_offset, y_offset):
+        self.sprite.render(x_offset, y_offset)

@@ -12,6 +12,7 @@ class Level(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.sprite_group = pygame.sprite.Group()
         self.entities = []
         self.seed = "MjY4NzQ3MDYzODcyODcwMzY4NA=="#base64.b64encode(str(random.randint(0, sys.maxsize)).encode('ascii')).decode('ascii')
         random.seed(self.seed)
@@ -54,8 +55,13 @@ class Level(object):
                 Tile.tiles[self.tilemap.map[x + y * self.width]].render(surface, (x << 5) - x_offset, (y << 5) - y_offset)
 
         for entity in self.entities:
-            # TODO ignore entities not on screen
-            entity.render(surface, x_offset, y_offset)
+            entity.render(x_offset, y_offset)
+
+        for sprite in self.sprite_group:
+            if sprite.render_flag:
+                surface.blit(sprite.image, sprite.rect)
+                pygame.draw.rect(surface, (255, 0, 255), sprite.posrect, 2)
+            sprite.render_flag = False
 
     def build_graph(self):
         for y in range(0, self.height):

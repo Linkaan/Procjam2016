@@ -2,15 +2,16 @@ import random
 import pygame
 from entity.mob.mob import Mob
 from level.pathfinding.findpath import find_path
+from graphics.sprite.spritesheet import SpriteSheet
 from graphics.sprite.animatedsprite import AnimatedSprite
 
 class Unit(Mob):
 
     def __init__(self, level, x, y):
         super().__init__(level, x, y, 2, 100)
-        self.vsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
-        self.hsprite = AnimatedSprite("../res/soldier_spritesheet.png", x, y, 5)
-        self.sprite = self.hsprite
+        self.sprite = AnimatedSprite(level.sprite_group, "../res/soldier_spritesheet.png", x, y, 5)
+        self.hor_spritesheet = self.sprite.spritesheet
+        self.ver_spritesheet = SpriteSheet("../res/enemy_spritesheet.png")
         self.updates = 0
         self.next = 0
         self.goal = (x, y)
@@ -55,9 +56,9 @@ class Unit(Mob):
             self.moving = False
 
         if self.moving_dir < 2:
-            self.sprite = self.hsprite
+            self.sprite.set_spritesheet(self.hor_spritesheet)
         else:
-            self.sprite = self.vsprite
+            self.sprite.set_spritesheet(self.ver_spritesheet)
         if self.moving_dir == 1 or self.moving_dir == 3:
             self.sprite.set_flipped(True)
         self.sprite.set_position(self.x, self.y)
@@ -68,7 +69,18 @@ class Unit(Mob):
             self.sprite.load(0)
         self.updates += 1
 
-    def render(self, surface, x_offset, y_offset):
+    def has_collided(self, xa, ya):
+        rect = pygame.Rect(self.x + xa, self.y + ya, 32, 32)
+        for sprite in self.level.sprite_group:
+            if sprite is not self.sprite:
+                if rect.colliderect(sprite.posrect):
+                    print(rect, end="")
+                    print(" and ", end="")
+                    print(sprite.posrect)
+                    return True
+        return False
+
+    def render(self, x_offset, y_offset):
         self.x_offset = x_offset
         self.y_offset = y_offset
-        self.sprite.render(surface, x_offset, y_offset)
+        self.sprite.render(x_offset, y_offset)
