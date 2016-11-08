@@ -2,7 +2,7 @@ import random
 import pygame
 from enum import Enum
 from entity.mob.mob import Mob
-from entity.mob.unit.unit import FormationState
+from states.states import MovementState
 from level.pathfinding.findpath import find_path
 from graphics.sprite.spritesheet import SpriteSheet
 from graphics.sprite.animatedsprite import AnimatedSprite
@@ -77,8 +77,3 @@ class Unit(Mob):
 
     def render(self, x_offset, y_offset):
         self.sprite.render(x_offset, y_offset)
-
-class MovementState(Enum):
-    state_moving = 1
-    state_reached_goal = 2
-    state_waiting_for_path = 3

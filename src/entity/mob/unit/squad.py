@@ -1,9 +1,9 @@
 import random
 import pygame
 import math
-from enum import Enum
 from entity.entity import Entity
-from entity.mob.unit import Unit
+from entity.mob.unit.unit import Unit
+from states.states import FormationState, MovementState
 
 class Squad(Entity):
 
@@ -45,7 +45,7 @@ class Squad(Entity):
         for pos in self.formation.positions:
             if self.formation.is_occupied(pos):
                 continue
-            dist = self.distance(pos. (self.formation.avg_x, self.formation.avg_y))
+            dist = self.distance(pos, (self.formation.avg_x, self.formation.avg_y))
             if not best or dist < best[0]:
                 best = (dist, pos)
         self.formation.set_occupied(best[1])
@@ -116,11 +116,6 @@ class Squad(Entity):
 
     def render(self, x_offset, y_offset):
         pass
-
-class FormationState(Enum):
-    state_broken = 1
-    state_forming = 2
-    state_formed = 3
 
 class Formation(object):
 

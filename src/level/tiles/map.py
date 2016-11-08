@@ -5,7 +5,7 @@ from GameConfig import *
 from level.tiles.tiles import *
 from level.bsp.leaf import Leaf
 from entity.pickups.bazooka_pickup import BazookaPickup
-from entity.mob.squad import Squad
+from entity.mob.unit.squad import Squad
 
 class Tilemap(object):
 
