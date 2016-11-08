@@ -7,7 +7,7 @@ from level.level import Level
 from level.pathfinding.findpath import find_path
 from graphics.sprite.basicsprite import BasicSprite
 from graphics.sprite.animatedsprite import AnimatedSprite
-from entity.mob.squad import Squad
+from entity.mob.unit.squad import Squad
 
 class Game(object):
 

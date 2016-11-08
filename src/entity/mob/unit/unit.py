@@ -12,7 +12,6 @@ class Unit(Mob):
         self.sprite = AnimatedSprite(level.sprite_group, "../res/soldier_spritesheet.png", x, y, 5)
         self.hor_spritesheet = self.sprite.spritesheet
         self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
-        self.updates = 0
         self.next = 0
         self.goal = (x, y)
         self.last_goal = self.goal
@@ -63,7 +62,6 @@ class Unit(Mob):
         else:
             self.sprite.current_frame = 0
             self.sprite.load(0)
-        self.updates += 1
 
     def has_collided(self, xa, ya):
         rect = pygame.Rect(self.x + xa, self.y + ya, 32, 32)

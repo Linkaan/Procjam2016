@@ -18,9 +18,11 @@ class Level(object):
         random.seed(self.seed)
         self.tilemap = Tilemap(self, self.width, self.height)
         self.graph = {}
+        self.updates = 0
         self.x_offset = 0
         self.y_offset = 0
         self.build_graph()
+        self.orig_graph = self.graph[:]
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -31,8 +33,15 @@ class Level(object):
             if not tile:
                 break
             tile.tick()
+        self.graph = self.orig_graph[:]
+        for entity in self.entities:
+            if isinstance(entity, Mob):
+                key = (entity.start[0], entity.start[1])
+                for node in self.graph[key]:
+                    node.remove(key)
         for entity in self.entities:
             entity.tick()
+        self.updates += 1
 
     def render(self, surface, x_offset, y_offset):
         from graphics.textures import Textures
