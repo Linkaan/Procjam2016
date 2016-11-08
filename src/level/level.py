@@ -60,7 +60,6 @@ class Level(object):
         for sprite in self.sprite_group:
             if sprite.render_flag:
                 surface.blit(sprite.image, sprite.rect)
-                pygame.draw.rect(surface, (255, 0, 255), sprite.posrect, 2)
             sprite.render_flag = False
 
     def build_graph(self):

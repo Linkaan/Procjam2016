@@ -11,32 +11,28 @@ class Unit(Mob):
         super().__init__(level, x, y, 2, 100)
         self.sprite = AnimatedSprite(level.sprite_group, "../res/soldier_spritesheet.png", x, y, 5)
         self.hor_spritesheet = self.sprite.spritesheet
-        self.ver_spritesheet = SpriteSheet("../res/enemy_spritesheet.png")
+        self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
         self.updates = 0
         self.next = 0
         self.goal = (x, y)
         self.last_goal = self.goal
         self.path = None
-        self.x_offset = 0
-        self.y_offset = 0
 
     def tick(self):
         xa = 0
         ya = 0
-        mouse_pos = pygame.mouse.get_pos()
-        self.goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
-        start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
+        self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         if self.goal != self.last_goal:
-            if not self.level.get_tile(start[0], start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
-                print("(%d, %d) and (%d, %d)" % (start[0], start[1], self.goal[0], self.goal[1]))
-                self.path = find_path(self.level, start, self.goal)
+            if not self.level.get_tile(self.start[0], self.start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
+                print("(%d, %d) and (%d, %d)" % (self.start[0], self.start[1], self.goal[0], self.goal[1]))
+                self.path = find_path(self.level, self.start, self.goal)
                 self.last_goal = self.goal
 
-        if start != self.last_goal:
+        if self.start != self.last_goal:
             if self.path:
                 if len(self.path) > 0:
                     pos = self.path[-1]
-                    if start == pos:
+                    if self.start == pos:
                         self.path.pop()
                         pos = self.path[-1]
                     pos = (pos[0] << 5, pos[1] << 5)
@@ -74,13 +70,8 @@ class Unit(Mob):
         for sprite in self.level.sprite_group:
             if sprite is not self.sprite:
                 if rect.colliderect(sprite.posrect):
-                    print(rect, end="")
-                    print(" and ", end="")
-                    print(sprite.posrect)
                     return True
         return False
 
     def render(self, x_offset, y_offset):
-        self.x_offset = x_offset
-        self.y_offset = y_offset
         self.sprite.render(x_offset, y_offset)

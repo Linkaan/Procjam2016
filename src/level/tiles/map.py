@@ -5,7 +5,7 @@ from GameConfig import *
 from level.tiles.tiles import *
 from level.bsp.leaf import Leaf
 from entity.pickups.bazooka_pickup import BazookaPickup
-from entity.mob.unit import Unit
+from entity.mob.squad import Squad
 
 class Tilemap(object):
 
@@ -44,7 +44,7 @@ class Tilemap(object):
         for l in leafs:
             if l.room:
                 if biggest.room.intersects(l.room):
-                    #self.level.add_entity(Unit(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
+                    self.level.add_entity(Squad(self.level, l.room.center[0] << 5, l.room.center[1] << 5, 3))
                     continue
                 self.level.add_entity(BazookaPickup(self.level, l.room.center[0] << 5, l.room.center[1] << 5))
 
