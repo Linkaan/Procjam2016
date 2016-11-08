@@ -12,7 +12,6 @@ class Mob(Entity):
         self.speed = speed
         self.health = health
         self.moving_dir = 1
-        self.moving = False
 
     def move(self, xa, ya):
         if xa != 0 and ya != 0:
@@ -46,6 +45,9 @@ class Mob(Entity):
                     if not self.has_collided(xa, aya):
                         self.y += ya
                     ya = 0
+        else:
+            return False
+        return True
 
 
     def abs(self, value):

@@ -1,6 +1,8 @@
 import random
 import pygame
+from enum import Enum
 from entity.mob.mob import Mob
+from entity.mob.unit.unit import FormationState
 from level.pathfinding.findpath import find_path
 from graphics.sprite.spritesheet import SpriteSheet
 from graphics.sprite.animatedsprite import AnimatedSprite
@@ -14,20 +16,19 @@ class Unit(Mob):
         self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
         self.next = 0
         self.goal = (x, y)
-        self.last_goal = self.goal
         self.path = None
+        self.movement_state = MovementState.state_reached_goal
 
     def tick(self):
         xa = 0
         ya = 0
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
-        if self.goal != self.last_goal:
+        if self.movement_state == MovementState.state_waiting_for_path:
             if not self.level.get_tile(self.start[0], self.start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
-                print("(%d, %d) and (%d, %d)" % (self.start[0], self.start[1], self.goal[0], self.goal[1]))
+                #print("(%d, %d) and (%d, %d)" % (self.start[0], self.start[1], self.goal[0], self.goal[1]))
                 self.path = find_path(self.level, self.start, self.goal)
-                self.last_goal = self.goal
 
-        if self.start != self.last_goal:
+        if self.movement_state == MovementState.state_moving:
             if self.path:
                 if len(self.path) > 0:
                     pos = self.path[-1]
@@ -43,12 +44,15 @@ class Unit(Mob):
                         ya += self.speed
                     if self.y > pos[1]:
                         ya -= self.speed
+                else:
+                    self.movement_state = MovementState.state_reached_goal
+            else:
+                self.movement_state = MovementState.state_waiting_for_path
 
         if xa or ya:
-            self.moving = True
-            self.move(xa, ya)
-        else:
-            self.moving = False
+            self.movement_state = MovementState.state_moving
+            if not self.move(xa, ya):
+                self.movement_state = MovementState.state_waiting_for_path
 
         if self.moving_dir < 2:
             self.sprite.set_spritesheet(self.hor_spritesheet)
@@ -57,7 +61,7 @@ class Unit(Mob):
         if self.moving_dir == 1 or self.moving_dir == 3:
             self.sprite.set_flipped(True)
         self.sprite.set_position(self.x, self.y)
-        if self.moving:
+        if self.movement_state == MovementState.state_moving:
             self.sprite.tick()
         else:
             self.sprite.current_frame = 0
@@ -73,3 +77,8 @@ class Unit(Mob):
 
     def render(self, x_offset, y_offset):
         self.sprite.render(x_offset, y_offset)
+
+class MovementState(Enum):
+    state_moving = 1
+    state_reached_goal = 2
+    state_waiting_for_path = 3
