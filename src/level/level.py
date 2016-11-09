@@ -3,6 +3,7 @@ import random
 import base64
 import pygame
 from GameConfig import *
+from entity.mob.mob import Mob
 from level.tiles.tiles import *
 from level.tiles.tile import Tile
 from level.tiles.map import Tilemap
@@ -18,11 +19,11 @@ class Level(object):
         random.seed(self.seed)
         self.tilemap = Tilemap(self, self.width, self.height)
         self.graph = {}
+        self.nodes = {}
         self.updates = 0
         self.x_offset = 0
         self.y_offset = 0
         self.build_graph()
-        self.orig_graph = self.graph[:]
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -33,12 +34,6 @@ class Level(object):
             if not tile:
                 break
             tile.tick()
-        self.graph = self.orig_graph[:]
-        for entity in self.entities:
-            if isinstance(entity, Mob):
-                key = (entity.start[0], entity.start[1])
-                for node in self.graph[key]:
-                    node.remove(key)
         for entity in self.entities:
             entity.tick()
         self.updates += 1
@@ -62,6 +57,8 @@ class Level(object):
                 if 0 > x or x >= self.width or 0 > y or y >= self.height:
                     continue
                 Tile.tiles[self.tilemap.map[x + y * self.width]].render(surface, (x << 5) - x_offset, (y << 5) - y_offset)
+                if self.is_occupied(x, y):
+                    pygame.draw.rect(surface, (255, 0, 255), ((x << 5) - x_offset, (y << 5) - y_offset, 32, 32))
 
         for entity in self.entities:
             entity.render(x_offset, y_offset)
@@ -87,6 +84,12 @@ class Level(object):
                             arr.add(a)
                             self.graph[(x, y)] = arr
         #print(self.graph[(20, 25)])
+
+    def is_occupied(self, x, y):
+        return self.nodes.get((x, y), False)
+
+    def set_occupied(self, x, y, occupied):
+        self.nodes[(x, y)] = occupied
 
     def get_tile(self, x, y):
         assert isinstance(x, int) and isinstance(y, int)

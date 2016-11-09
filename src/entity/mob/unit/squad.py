@@ -13,11 +13,11 @@ class Squad(Entity):
         self.unit_count = unit_count
         self.max_speed = math.inf
         self.create_units(x, y)
-        self.formation = Formation(self, FormationState.state_broken, self.unit_count, 0)
+        self.formation = Formation(FormationState.state_broken, self.unit_count, 0)
         self.cur_forming_unit = None
 
     def create_units(self, x, y):
-        self.axis = random.randint(0, 1)
+        self.axis = 1#random.randint(0, 1)
         for i in range(self.unit_count):
             if self.axis == 0:
                 unitx = x
@@ -25,7 +25,7 @@ class Squad(Entity):
             else:
                 unitx = x - (i - int(self.unit_count / 2) << 5)
                 unity = y
-            unit = Unit(self, self.level, unitx, unity)
+            unit = Unit(self.level, unitx, unity)
             if i == int(self.unit_count / 2):
                 self.commander = unit
             self.units.append(unit)
@@ -48,8 +48,10 @@ class Squad(Entity):
             dist = self.distance(pos, (self.formation.avg_x, self.formation.avg_y))
             if not best or dist < best[0]:
                 best = (dist, pos)
+        if not best:
+            return None
         self.formation.set_occupied(best[1])
-        return best[1]
+        return ((self.x >> 5) + best[1][0], (self.y >> 5) + best[1][1])
 
     def get_unit_for_formattion(self, pos):
         best = None
@@ -57,7 +59,7 @@ class Squad(Entity):
             dist = self.distance((unit.x - self.x, unit.y - self.y), pos)
             if not best or dist < best[0]:
                 best = (dist, unit)
-        return best
+        return best[1]
 
 
 
@@ -91,6 +93,8 @@ class Squad(Entity):
                 self.cur_forming_unit = None
                 return
             self.cur_forming_unit = self.get_unit_for_formattion(unfilled)
+            print(unfilled)
+            self.cur_forming_unit.goto(unfilled)
 
 
     def tick(self):
@@ -98,18 +102,19 @@ class Squad(Entity):
         mouse_pos = pygame.mouse.get_pos()
         goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
         has_reached = False
-        '''        
+        '''
+        sum_x = 0
+        sum_y = 0
         for unit in self.units:
-            sum_x = unit.x
-            sum_y = unit.y
+            sum_x += unit.x
+            sum_y += unit.y
         self.x = int(sum_x / self.unit_count)
         self.y = int(sum_y / self.unit_count)
         if self.level.updates % 3 == 0:
             self.formation.check_formation(self.x, self.y, self.get_unit_positions())
         if self.formation.state != FormationState.state_formed:
+            print("no formation")
             self.format_units()
-
-
 
     def distance(self, start, goal):
         return math.sqrt((goal[0] - start[0])**2 + (goal[1] - start[1])**2)
@@ -122,9 +127,7 @@ class Formation(object):
     def __init__(self, state, unit_count, orientation):
         self.state = state
         self.unit_count = unit_count
-        self.orientation = orientation
-        self.positions = self.get_formation_positions()
-        self.filled = None
+        self.set_orientation(orientation)
 
     def get_formation_positions(self):
         positions = []
@@ -143,6 +146,11 @@ class Formation(object):
         self.avg_x /= self.unit_count
         self.avg_y /= self.unit_count
         return positions
+
+    def set_orientation(self, orientation):
+        self.orientation = orientation
+        self.positions = self.get_formation_positions()
+        self.filled = None
 
     def check_formation(self, x, y, positions):
         if self.state == FormationState.state_forming:

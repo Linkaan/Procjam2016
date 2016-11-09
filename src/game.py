@@ -34,7 +34,8 @@ class Game(object):
         #self.testsprite3 = BasicSprite(self.level.sprite_group, "../res/bazooka.png", 64, 0)
         #self.testunit1 = Unit(self.level, 96, 64)
         #self.testunit2 = Unit(self.level, 96, 32*4)
-        #self.squad1 = Squad(self.level, 64, 64, 3)
+        #self.squad1 = Squad(self.level, 64*2, 64*2, 3)
+        self.level.add_entity(Squad(self.level, 64*2, 64*2, 3))
         self.running = True
 
     def event_loop(self):
