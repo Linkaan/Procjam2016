@@ -10,7 +10,8 @@ from level.tiles.map import Tilemap
 
 class Level(object):
 
-    def __init__(self, width, height):
+    def __init__(self, game, width, height):
+        self.game = game
         self.width = width
         self.height = height
         self.sprite_group = pygame.sprite.Group()
@@ -19,6 +20,8 @@ class Level(object):
         random.seed(self.seed)
         self.tilemap = Tilemap(self, self.width, self.height)
         self.graph = {}
+        self.neighbours = {}
+        self.walls = {}
         self.nodes = {}
         self.updates = 0
         self.x_offset = 0
@@ -83,6 +86,17 @@ class Level(object):
                                 arr = set()
                             arr.add(a)
                             self.graph[(x, y)] = arr
+                        else:
+                            arr = self.walls.get((x, y))
+                            if not arr:
+                                arr = set()
+                            arr.add(a)
+                            self.walls[(x, y)] = arr
+                        arr = self.neighbours.get((x, y))
+                        if not arr:
+                            arr = set()
+                        arr.add(a)
+                        self.neighbours[(x, y)] = arr
         #print(self.graph[(20, 25)])
 
     def is_occupied(self, x, y):

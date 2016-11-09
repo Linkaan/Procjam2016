@@ -26,7 +26,7 @@ class Game(object):
     def load(self):
         # load game here
         load_textures()
-        self.level = Level(WIDTH, HEIGHT)
+        self.level = Level(self, WIDTH, HEIGHT)
         #path = find_path(self.level, (3, 3), (12, 12))
         #print(len(path))
         #self.testsprite1 = AnimatedSprite(self.level.sprite_group, "../res/soldier_spritesheet.png", 0, 0, 10)
@@ -39,10 +39,13 @@ class Game(object):
         self.running = True
 
     def event_loop(self):
+        self.mouse_up = False
         for event in pygame.event.get():
             self.keys = pygame.key.get_pressed()
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.mouse_up = True
 
     def show_fps(self):
         caption = "{} - FPS: {:.2f}".format(CAPTION, self.clock.get_fps())

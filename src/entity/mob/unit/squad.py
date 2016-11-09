@@ -3,7 +3,7 @@ import pygame
 import math
 from entity.entity import Entity
 from entity.mob.unit.unit import Unit
-from states.states import FormationState, MovementState
+from states.states import FormationState, MovementState, OrderState, UnitPriority
 
 class Squad(Entity):
 
@@ -13,11 +13,16 @@ class Squad(Entity):
         self.unit_count = unit_count
         self.max_speed = math.inf
         self.create_units(x, y)
-        self.formation = Formation(FormationState.state_broken, self.unit_count, 0)
+        self.formation = Formation(FormationState.state_formed, self.unit_count, self.axis)
         self.cur_forming_unit = None
+        self.order_state = OrderState.state_waiting_for_order
+        self.goal = None
+        self.routes = None
+        self.x_offset = 0
+        self.y_offset = 0
 
     def create_units(self, x, y):
-        self.axis = 1#random.randint(0, 1)
+        self.axis = random.randint(0, 1)
         for i in range(self.unit_count):
             if self.axis == 0:
                 unitx = x
@@ -36,9 +41,8 @@ class Squad(Entity):
     def get_unit_positions(self):
         positions = []
         for unit in self.units:
-            positions.append((unit.x, unit.y))
+            positions.append((unit.x >> 5, unit.y >> 5))
         return positions
-
 
     def get_center_unfilled_pos(self):
         best = None
@@ -56,53 +60,42 @@ class Squad(Entity):
     def get_unit_for_formattion(self, pos):
         best = None
         for unit in self.units:
-            dist = self.distance((unit.x - self.x, unit.y - self.y), pos)
+            if unit.priority == UnitPriority.state_highest:
+                continue
+            dist = self.distance(((unit.x - self.x) >> 5, (unit.y - self.y) >> 5), pos)
             if not best or dist < best[0]:
                 best = (dist, unit)
         return best[1]
 
-
-
-    '''
-    Set all units' internal group movement priorities to same low priority value.
-    Set state to cStateForming.
-    While state is cStateForming:
-    {
-    Find the unfilled position that's closest to the center of the formation.
-    If no unit was available
-    Set the state to cStateFormed and break out of forming loop.
-
-    Select a unit to fill that slot using a game specific heuristic that:
-    Minimizes the distance the unit has to travel.
-    Will collide with the fewest number of other formation members.
-    Has the lowest overall travel time.
-
-    Set unit's movement priority to a medium priority value.
-    Wait (across multiple game updates) until unit is in position.
-    Set unit's movement priority to highest possible value. This ensures that
-    subsequently formed units will not dislodge this unit.
-    }
-    '''
     def format_units(self):
         if not self.formation.state == FormationState.state_forming:
             self.formation.state = FormationState.state_forming
+            for unit in self.units:
+                unit.priority == UnitPriority.state_lowest
         elif not self.cur_forming_unit or self.cur_forming_unit.movement_state == MovementState.state_reached_goal:
+            if self.cur_forming_unit and self.cur_forming_unit.movement_state == MovementState.state_reached_goal:
+                print("Setting unit priority to highest")
+                self.cur_forming_unit.priority == UnitPriority.state_highest
             unfilled = self.get_center_unfilled_pos()
             if not unfilled:
-                self.formation.state = FormationState.state_forming
+                print("done forming")
+                self.formation.state = FormationState.state_formed
                 self.cur_forming_unit = None
+                for unit in self.units:
+                    unit.priority == UnitPriority.state_medium
                 return
             self.cur_forming_unit = self.get_unit_for_formattion(unfilled)
             print(unfilled)
             self.cur_forming_unit.goto(unfilled)
 
-
     def tick(self):
-        '''
-        mouse_pos = pygame.mouse.get_pos()
-        goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
-        has_reached = False
-        '''
+        if self.level.game.mouse_up:
+            mouse_pos = pygame.mouse.get_pos()            
+            self.goal = ((mouse_pos[0] + self.x_offset) >> 5, (mouse_pos[1] + self.y_offset) >> 5)
+            self.order_state = OrderState.state_waiting_for_target
+            print("Target selected")
+        #if self.level.updates % 45:
+        #    self.formation.set_orientation(random.randint(0, 1))
         sum_x = 0
         sum_y = 0
         for unit in self.units:
@@ -111,16 +104,43 @@ class Squad(Entity):
         self.x = int(sum_x / self.unit_count)
         self.y = int(sum_y / self.unit_count)
         if self.level.updates % 3 == 0:
-            self.formation.check_formation(self.x, self.y, self.get_unit_positions())
+            self.formation.check_formation(self.x>>5, self.y>>5, self.get_unit_positions())
         if self.formation.state != FormationState.state_formed:
-            print("no formation")
             self.format_units()
+        if self.order_state == OrderState.state_waiting_for_target:            
+            # calculate goals for each unit that are valid
+            # calculate routes for each unit to move based on commander unit position
+            self.routes = self.get_valid_routes()
+            if not self.routes:
+                self.order_state = OrderState.state_waiting_for_order
+            else:
+                self.order_state = OrderState.state_moving_to_target
+                for unit in self.units:
+                    route = self.routes.get((unit.x, unit.y))
+                    assert route
+                    unit.goal = route["goal"]
+                    unit.path = route["path"]
+                    unit.movement_state = MovementState.state_moving
+        elif self.order_state == OrderState.state_moving_to_target:
+            moving = True
+            # check if all units are moving (exception if units have reached the goal)
+            for unit in self.units:
+                if unit.movement_state == MovementState.state_waiting_for_path:
+                    moving = False
+                    break
+            # if not then we try to change orientation of formation and recalculate route
+            if not moving:
+                self.formation.set_orientation(0 if self.formation.orientation == 1 else 1)
+                self.order_state = OrderState.state_waiting_for_target
+        if self.commander.movement_state == MovementState.state_reached_goal
+            self.order_state = OrderState.state_waiting_for_order        
 
     def distance(self, start, goal):
         return math.sqrt((goal[0] - start[0])**2 + (goal[1] - start[1])**2)
 
     def render(self, x_offset, y_offset):
-        pass
+        self.x_offset = x_offset
+        self.y_offset = y_offset
 
 class Formation(object):
 
@@ -155,10 +175,13 @@ class Formation(object):
     def check_formation(self, x, y, positions):
         if self.state == FormationState.state_forming:
             return
-        formation_positions = [(x + pos[0], y + pos[1]) for pos in positions]
+        formation_positions = [(x + pos[0], y + pos[1]) for pos in self.positions]
         if set(formation_positions) == set(positions):
             self.state = FormationState.state_formed
         else:
+            print(formation_positions, end="")
+            print(" and ", end="")
+            print(positions)
             self.state = FormationState.state_broken
             self.filled = None
 
