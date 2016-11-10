@@ -29,10 +29,11 @@ class Unit(Mob):
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         if self.last_start != self.start:
             self.level.set_occupied(self.last_start[0], self.last_start[1], False)
-            self.level.set_occupied(self.start[0], self.start[1], True)
+        self.level.set_occupied(self.start[0], self.start[1], True)
         if self.movement_state == MovementState.state_waiting_for_path:
             if self.goal and not self.level.get_tile(self.start[0], self.start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
                 self.path = find_path(self.level, self.start, self.goal)
+                print("looked for path")
                 #if not self.path:
                 #print("(%d, %d) and (%d, %d)" % (self.start[0], self.start[1], self.goal[0], self.goal[1]))
                 self.movement_state = MovementState.state_moving
@@ -44,6 +45,7 @@ class Unit(Mob):
             else:
                 if len(self.path) > 0:
                     pos = self.path[-1]
+                    print(pos)
                     pos = (pos[0] << 5, pos[1] << 5)
                     if (self.x, self.y) == (pos[0], pos[1]): #TODO change logic to do proper moves!!
                         self.path.pop()
@@ -59,9 +61,9 @@ class Unit(Mob):
                     if self.y > pos[1]:
                         ya -= min(self.y - pos[1], self.speed)
                     '''
-                    if self.level.updates % 15 == 0:
-                        self.x = pos[0]
-                        self.y = pos[1]
+                    #if self.level.updates % 15 == 0:
+                    self.x = pos[0]
+                    self.y = pos[1]
                 else:
                     self.movement_state = MovementState.state_reached_goal
 
@@ -96,12 +98,14 @@ class Unit(Mob):
             if sprite is not self.sprite:
                 if rect.colliderect(sprite.posrect):
                     return True
+        '''
         current = self.current_tile_pos(rect)
         if self.level.get_tile(current).solid:
             return True
         for node in self.level.walls.get(current, []):
             if rect.colliderect(pygame.Rect(node[0] << 5, node[1] << 5, 32, 32)):
                 return True
+        '''
         return False
 
     def rectangle_overlap_ratio(self, rectA, rectB):
