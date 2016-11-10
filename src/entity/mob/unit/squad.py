@@ -75,7 +75,7 @@ class Squad(Entity):
         elif not self.cur_forming_unit or self.cur_forming_unit.movement_state == MovementState.state_reached_goal:
             if self.cur_forming_unit and self.cur_forming_unit.movement_state == MovementState.state_reached_goal:
                 print("Setting unit priority to highest")
-                self.cur_forming_unit.priority == UnitPriority.state_highest
+                self.cur_forming_unit.priority = UnitPriority.state_highest
             unfilled = self.get_center_unfilled_pos()
             if not unfilled:
                 print("done forming")
@@ -87,6 +87,38 @@ class Squad(Entity):
             self.cur_forming_unit = self.get_unit_for_formattion(unfilled)
             print(unfilled)
             self.cur_forming_unit.goto(unfilled)
+
+    def get_valid_goals():
+        goals = {}
+        goals[self.commander] = self.goal
+        
+
+    def get_valid_routes(self):
+        goals = self.get_valid_goals()
+        commander_goal = goals.get(self.commander)
+        assert commander_goal
+        routes = {}
+        routes[self.commander] = find_path(self.level, self.commander.start, commander_goal)
+        for unit in self.units:
+            if unit is self.commander:
+                continue
+            dx = (unit.start[0] - self.commander.start[0]) >> 5
+            dy = (unit.start[1] - self.commander.start[1]) >> 5
+            goal = goals.get(unit)
+            new_route = []
+            route = routes[self.commander][:]
+            route.reverse()
+            for move in route:
+                new_move = (move.x + dx , move.y + dy)
+                if new_move == goal:
+                    break
+                new_route.append(new_move)
+            new_route.reverse()
+            unit.goal = goal
+            unit.route = new_route
+            unit.movement_state = MovementState.state_moving
+
+
 
     def tick(self):
         if self.level.game.mouse_up:
@@ -107,7 +139,7 @@ class Squad(Entity):
             self.formation.check_formation(self.x>>5, self.y>>5, self.get_unit_positions())
         if self.formation.state != FormationState.state_formed:
             self.format_units()
-        if self.order_state == OrderState.state_waiting_for_target:            
+        elif self.order_state == OrderState.state_waiting_for_target:            
             # calculate goals for each unit that are valid
             # calculate routes for each unit to move based on commander unit position
             self.routes = self.get_valid_routes()
@@ -132,7 +164,7 @@ class Squad(Entity):
             if not moving:
                 self.formation.set_orientation(0 if self.formation.orientation == 1 else 1)
                 self.order_state = OrderState.state_waiting_for_target
-        if self.commander.movement_state == MovementState.state_reached_goal
+        if self.commander.movement_state == MovementState.state_reached_goal:
             self.order_state = OrderState.state_waiting_for_order        
 
     def distance(self, start, goal):
