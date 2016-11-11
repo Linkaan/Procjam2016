@@ -1,6 +1,7 @@
 import random
 import pygame
 import math
+import heapq
 from entity.entity import Entity
 from entity.mob.unit.unit import Unit
 from level.pathfinding.findpath import find_path
@@ -35,13 +36,21 @@ class Squad(Entity):
                 unitx = x - (i - int(self.unit_count / 2) << 5)
                 unity = y
             unit = Unit(self.level, unitx, unity)
+            unit.squad = self
             unit.squad_id = self.id
             if i == int(self.unit_count / 2):
                 self.commander = unit
             self.units.append(unit)
-            self.level.add_entity(unit)
             if unit.speed < self.max_speed:
                 self.max_speed = unit.speed
+        self.level.add_entity(self.commander)
+        units_heap = []
+        for unit in self.units:
+            if unit is self.commander:
+                continue
+            heapq.heappush(units_heap, (self.distance((unit.x, unit.y), (self.commander.x, self.commander.y)), unit))
+        while units_heap:
+            self.level.add_entity(heapq.heappop(units_heap)[1])
 
     def get_unit_positions(self):
         positions = []
@@ -131,6 +140,21 @@ class Squad(Entity):
             #assert goal == new_route[0]
             routes[unit] = {"goal": goal, "path": new_route}
         return routes
+
+    def follow_closet_centered_unit(self, follower_unit):
+        print("following unit is " + str(follower_unit.id))
+        # stall all other units and find closest
+        closest = None
+        for unit in self.units:
+            if unit is follower_unit:
+                continue
+            #unit.movement_state = MovementState.state_stalling
+            dist = self.distance((follower_unit.x, follower_unit.y), (unit.x, unit.y))
+            commander_dist = self.distance((unit.x, unit.y), (self.commander.x, self.commander.y))
+            if not closest or dist < closest[1] and commander_dist < closest[2]:
+                closest = [unit, dist, commander_dist]
+        assert closest
+        return closest[0].last_start
 
     def tick(self):
         if self.level.game.mouse_up:

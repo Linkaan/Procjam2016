@@ -15,10 +15,13 @@ class Unit(Mob):
         self.sprite = AnimatedSprite(level.sprite_group, "../res/soldier_spritesheet.png", x, y, 5)
         self.hor_spritesheet = self.sprite.spritesheet
         self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
+        self.squad = None
         self.squad_id = -1
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         self.last_start = (0, 0)
         self.move_pos = (0, 0)
+        self.next_move = None
+        self.move_num = 0
         self.goal = None
         self.path = None
         self.priority = UnitPriority.state_lowest
@@ -43,33 +46,41 @@ class Unit(Mob):
         if self.movement_state == MovementState.state_moving:
             #print("Unit now moving from (" + str(self.start) + ") on path " + str(self.path))
             if not self.path or (self.x, self.y) == (self.goal[0] << 5, self.goal[1] << 5):
+                self.move_num = 0
                 self.movement_state = MovementState.state_reached_goal
             else:
                 if len(self.path) > 0:
-                    if (self.x, self.y) == (self.move_pos[0], self.move_pos[1]): #TODO change logic to do proper moves!!
-                        print("popped")
-                        self.path.pop()
-                    self.move_pos = (self.path[-1][0] << 5, self.path[-1][1] << 5)
-                    '''
-                    if self.x < pos[0]:
-                        xa += min(pos[0] - self.x, self.speed)
-                    if self.x > pos[0]:
-                        xa -= min(self.x - pos[0], self.speed)
-                    if self.y < pos[1]:
-                        ya += min(pos[1] - self.y, self.speed)
-                    if self.y > pos[1]:
-                        ya -= min(self.y - pos[1], self.speed)
-                    '''
-                    if self.level.updates % 5 == 0:
-                        print("move from " + str((self.x, self.y)) + " to pos " + str(self.move_pos))
-                        self.x = self.move_pos[0]
-                        self.y = self.move_pos[1]
+                    if not self.next_move or (self.x, self.y) == (self.move_pos[0], self.move_pos[1]): #TODO change logic to do proper moves!!
+                        self.path.pop()                        
+                        self.move_num += 1
+                        if len(self.path) > 0:
+                            self.next_move = self.path[-1]
+                        if self.next_move and self.level.get_tile(self.next_move[0], self.next_move[1]).solid:
+                            self.next_move = self.squad.follow_closet_centered_unit(self)
+                    if not self.next_move is None:
+                        self.move_pos = (self.next_move[0] << 5, self.next_move[1] << 5)
+                        '''
+                        if self.x < pos[0]:
+                            xa += min(pos[0] - self.x, self.speed)
+                        if self.x > pos[0]:
+                            xa -= min(self.x - pos[0], self.speed)
+                        if self.y < pos[1]:
+                            ya += min(pos[1] - self.y, self.speed)
+                        if self.y > pos[1]:
+                            ya -= min(self.y - pos[1], self.speed)
+                        '''
+                        if self.level.updates % 5 == 0:
+                            print(str(self.id) + "move from " + str((self.x, self.y)) + " to pos " + str(self.move_pos))
+                            self.x = self.move_pos[0]
+                            self.y = self.move_pos[1]
                 else:
+                    self.move_num = 0
                     self.movement_state = MovementState.state_reached_goal
 
         if xa or ya:
             self.movement_state = MovementState.state_moving
-            if not self.move(xa, ya):
+            if not self.move(xa, ya): # TODO stall other units and resolve collision conflict
+                self.move_num = 0
                 self.movement_state = MovementState.state_waiting_for_path
 
         if self.moving_dir < 2:

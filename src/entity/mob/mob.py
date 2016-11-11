@@ -7,8 +7,11 @@ from entity.entity import Entity
 class Mob(Entity):
     __metaclass__ = ABCMeta
 
+    mob_id_counter = 0
     def __init__(self, level, x, y, speed, health):
         super().__init__(level, x, y)
+        Mob.mob_id_counter += 1
+        self.id = Mob.mob_id_counter
         self.speed = speed
         self.health = health
         self.moving_dir = 1
@@ -49,6 +52,8 @@ class Mob(Entity):
             return False
         return True
 
+    def __lt__(self, other):
+        return self.id < other.id
 
     def abs(self, value):
         return -1 if value < 0 else 1
