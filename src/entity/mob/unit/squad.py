@@ -104,21 +104,27 @@ class Squad(Entity):
         assert commander_goal
         routes = {}
         routes[self.commander] = {"goal": commander_goal, "path": find_path(self.level, self.commander.start, commander_goal)}
+        route = routes[self.commander]["path"][:]
+        route.reverse()
         for unit in self.units:
             if unit is self.commander:
                 continue
-            dx = (unit.start[0] - self.commander.start[0])
-            dy = (unit.start[1] - self.commander.start[1])
+            dx = abs(unit.start[0] - self.commander.start[0])
+            dy = abs(unit.start[1] - self.commander.start[1])
             goal = goals.get(unit)
             new_route = []
-            route = routes[self.commander]["path"][:]
-            route.reverse()
+            if goal[0] < commander_goal[0]:
+                dx = -dx
+            if goal[1] < commander_goal[1]:
+                dy = -dy
+            print(str(dy) + " when goal is " + str(goal))
             for move in route:
-                new_move = (move[0] - dx , move[1] - dy)
+                new_move = (move[0] + dx , move[1] + dy)
                 new_route.append(new_move)
-                if new_move == goal:
-                    break
-            new_route.reverse()
+                #if new_move == goal:
+                #    break
+            new_route.reverse()            
+            #assert goal == new_route[0]
             routes[unit] = {"goal": goal, "path": new_route}
         return routes
 

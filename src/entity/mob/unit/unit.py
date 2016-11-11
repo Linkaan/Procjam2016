@@ -16,7 +16,8 @@ class Unit(Mob):
         self.hor_spritesheet = self.sprite.spritesheet
         self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
         self.next = 0
-        self.start = (0, 0)
+        self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
+        self.last_start = (0, 0)
         self.goal = None
         self.path = None
         self.priority = UnitPriority.state_lowest
@@ -25,7 +26,6 @@ class Unit(Mob):
     def tick(self):
         xa = 0
         ya = 0
-        self.last_start = self.start
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         if self.last_start != self.start:
             self.level.set_occupied(self.last_start[0], self.last_start[1], False)
@@ -40,17 +40,19 @@ class Unit(Mob):
 
 
         if self.movement_state == MovementState.state_moving:
+            #print("Unit now moving from (" + str(self.start) + ") on path " + str(self.path))
             if not self.path or (self.x, self.y) == (self.goal[0] << 5, self.goal[1] << 5):
                 self.movement_state = MovementState.state_reached_goal
             else:
                 if len(self.path) > 0:
                     pos = self.path[-1]
-                    print(pos)
-                    pos = (pos[0] << 5, pos[1] << 5)
+                    pos = (pos[0] << 5, pos[1] << 5)                    
                     if (self.x, self.y) == (pos[0], pos[1]): #TODO change logic to do proper moves!!
+                        print("popped")
                         self.path.pop()
                         if len(self.path) > 0:
                             pos = self.path[-1]
+                            pos = (pos[0] << 5, pos[1] << 5)
                     '''
                     if self.x < pos[0]:
                         xa += min(pos[0] - self.x, self.speed)
@@ -61,9 +63,10 @@ class Unit(Mob):
                     if self.y > pos[1]:
                         ya -= min(self.y - pos[1], self.speed)
                     '''
-                    #if self.level.updates % 15 == 0:
-                    self.x = pos[0]
-                    self.y = pos[1]
+                    if self.level.updates % 15 == 0:
+                        print("move from " + str((self.x, self.y)) + " to pos " + str(pos))
+                        self.x = pos[0]
+                        self.y = pos[1]
                 else:
                     self.movement_state = MovementState.state_reached_goal
 
@@ -84,6 +87,7 @@ class Unit(Mob):
         else:
             self.sprite.current_frame = 0
             self.sprite.load(0)
+        self.last_start = self.start
 
     def goto(self, pos):
         self.goal = pos

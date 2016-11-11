@@ -24,7 +24,7 @@ def cfind_path(level, start, goal):
         open_set.remove(current)
         closed_set.add(current)
         for node in level.graph[current]:
-            if node not in closed_set and not level.is_occupied(node[0], node[1]):
+            if node not in closed_set: # and not level.is_occupied(node[0], node[1])
                 tentative_g_score = g_score.get(current, 256) + 1
                 node_g_score = g_score.get(node, 256)
                 if node not in open_set:
