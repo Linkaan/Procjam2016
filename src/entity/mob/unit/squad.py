@@ -8,8 +8,11 @@ from states.states import FormationState, MovementState, OrderState, UnitPriorit
 
 class Squad(Entity):
 
+    squad_id_counter = 0
     def __init__(self, level, x, y, unit_count):
         super().__init__(level, x, y)
+        Squad.squad_id_counter += 1
+        self.id = Squad.squad_id_counter
         self.units = []
         self.unit_count = unit_count
         self.max_speed = math.inf
@@ -32,6 +35,7 @@ class Squad(Entity):
                 unitx = x - (i - int(self.unit_count / 2) << 5)
                 unity = y
             unit = Unit(self.level, unitx, unity)
+            unit.squad_id = self.id
             if i == int(self.unit_count / 2):
                 self.commander = unit
             self.units.append(unit)
@@ -103,7 +107,7 @@ class Squad(Entity):
         commander_goal = goals.get(self.commander)
         assert commander_goal
         routes = {}
-        routes[self.commander] = {"goal": commander_goal, "path": find_path(self.level, self.commander.start, commander_goal)}
+        routes[self.commander] = {"goal": commander_goal, "path": find_path(self.level, self.commander.start, commander_goal, self.id)}
         route = routes[self.commander]["path"][:]
         route.reverse()
         for unit in self.units:
@@ -219,7 +223,14 @@ class Formation(object):
     def check_formation(self, x, y, positions):
         if self.state == FormationState.state_forming:
             return
-        formation_positions = [(x + pos[0], y + pos[1]) for pos in self.positions]
+        position_offset = 1 if self.unit_count % 2 == 0 else 0
+        if self.orientation == 0:
+            x_offset = 0
+            y_offset = position_offset
+        else:
+            x_offset = position_offset
+            y_offset = 0
+        formation_positions = [(x + pos[0] + x_offset, y + pos[1] + y_offset) for pos in self.positions]
         if set(formation_positions) == set(positions):
             self.state = FormationState.state_formed
         else:

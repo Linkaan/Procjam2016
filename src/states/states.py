@@ -9,6 +9,7 @@ class MovementState(Enum):
     state_moving = 1
     state_reached_goal = 2
     state_waiting_for_path = 3
+    state_stalling = 4
 
 class OrderState(Enum):
     state_waiting_for_target = 1

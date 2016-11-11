@@ -15,9 +15,10 @@ class Unit(Mob):
         self.sprite = AnimatedSprite(level.sprite_group, "../res/soldier_spritesheet.png", x, y, 5)
         self.hor_spritesheet = self.sprite.spritesheet
         self.ver_spritesheet = SpriteSheet("../res/soldier_spritesheet.png")
-        self.next = 0
+        self.squad_id = -1
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         self.last_start = (0, 0)
+        self.move_pos = (0, 0)
         self.goal = None
         self.path = None
         self.priority = UnitPriority.state_lowest
@@ -28,8 +29,8 @@ class Unit(Mob):
         ya = 0
         self.start = (int(self.x + 16) >> 5, int(self.y + 16) >> 5)
         if self.last_start != self.start:
-            self.level.set_occupied(self.last_start[0], self.last_start[1], False)
-        self.level.set_occupied(self.start[0], self.start[1], True)
+            self.level.set_occupied(self.last_start[0], self.last_start[1], None)
+        self.level.set_occupied(self.start[0], self.start[1], self)
         if self.movement_state == MovementState.state_waiting_for_path:
             if self.goal and not self.level.get_tile(self.start[0], self.start[1]).solid and not self.level.get_tile(self.goal[0], self.goal[1]).solid:
                 self.path = find_path(self.level, self.start, self.goal)
@@ -45,14 +46,10 @@ class Unit(Mob):
                 self.movement_state = MovementState.state_reached_goal
             else:
                 if len(self.path) > 0:
-                    pos = self.path[-1]
-                    pos = (pos[0] << 5, pos[1] << 5)                    
-                    if (self.x, self.y) == (pos[0], pos[1]): #TODO change logic to do proper moves!!
+                    if (self.x, self.y) == (self.move_pos[0], self.move_pos[1]): #TODO change logic to do proper moves!!
                         print("popped")
                         self.path.pop()
-                        if len(self.path) > 0:
-                            pos = self.path[-1]
-                            pos = (pos[0] << 5, pos[1] << 5)
+                    self.move_pos = (self.path[-1][0] << 5, self.path[-1][1] << 5)
                     '''
                     if self.x < pos[0]:
                         xa += min(pos[0] - self.x, self.speed)
@@ -63,10 +60,10 @@ class Unit(Mob):
                     if self.y > pos[1]:
                         ya -= min(self.y - pos[1], self.speed)
                     '''
-                    if self.level.updates % 15 == 0:
-                        print("move from " + str((self.x, self.y)) + " to pos " + str(pos))
-                        self.x = pos[0]
-                        self.y = pos[1]
+                    if self.level.updates % 5 == 0:
+                        print("move from " + str((self.x, self.y)) + " to pos " + str(self.move_pos))
+                        self.x = self.move_pos[0]
+                        self.y = self.move_pos[1]
                 else:
                     self.movement_state = MovementState.state_reached_goal
 
@@ -87,6 +84,8 @@ class Unit(Mob):
         else:
             self.sprite.current_frame = 0
             self.sprite.load(0)
+        if self.movement_state == MovementState.state_stalling:
+            self.movement_state = MovementState.state_moving
         self.last_start = self.start
 
     def goto(self, pos):
