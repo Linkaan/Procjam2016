@@ -18,7 +18,7 @@ class Squad(Entity):
         self.unit_count = unit_count
         self.max_speed = math.inf
         self.create_units(x, y)
-        self.formation = Formation(FormationState.state_formed, self.unit_count, self.axis)
+        self.formation = Formation(level, FormationState.state_formed, self.unit_count, self.axis)
         self.cur_forming_unit = None
         self.order_state = OrderState.state_waiting_for_order
         self.goal = None
@@ -75,10 +75,13 @@ class Squad(Entity):
         for unit in self.units:
             if unit.priority == UnitPriority.state_highest:
                 continue
-            dist = self.distance(((unit.x - self.x) >> 5, (unit.y - self.y) >> 5), pos)
-            if not best or dist < best[0]:
-                best = (dist, unit)
-        return best[1]
+            #self.distance(((unit.x - self.x) >> 5, (unit.y - self.y) >> 5), pos)
+            path = find_path(self.level, unit.start, pos, self.id)
+            assert path
+            g_score = len(path)
+            if not best or g_score < best[1]:
+                best = (unit, g_score, path)
+        return best
 
     def format_units(self):
         if not self.formation.state == FormationState.state_forming:
@@ -93,13 +96,22 @@ class Squad(Entity):
             if not formation_pos:
                 print("done forming")
                 self.formation.state = FormationState.state_formed
+                self.formation.check_formation(self.x>>5, self.y>>5, self.get_unit_positions())                
                 self.cur_forming_unit = None
                 for unit in self.units:
                     unit.priority = UnitPriority.state_medium
                 return
             unfilled = ((self.x >> 5) + formation_pos[0], (self.y >> 5) + formation_pos[1])
-            self.cur_forming_unit = self.get_unit_for_formattion(unfilled)
-            self.cur_forming_unit.goto(unfilled)
+            if self.level.get_tile(unfilled[0], unfilled[1]).solid:
+                print("failed forming!!")
+                return
+            best = self.get_unit_for_formattion(unfilled)
+            self.cur_forming_unit = None
+            if best:
+                self.cur_forming_unit = best[0]
+                self.cur_forming_unit.goal = unfilled
+                self.cur_forming_unit.path = best[2]
+                self.cur_forming_unit.movement_state = MovementState.state_moving
             self.formation.set_occupied(formation_pos, self.cur_forming_unit)
 
     def get_possible_goals(self):
@@ -172,11 +184,7 @@ class Squad(Entity):
             sum_y += unit.y
         self.x = int(sum_x / self.unit_count)
         self.y = int(sum_y / self.unit_count)
-        if self.level.updates % 3 == 0:
-            self.formation.check_formation(self.x>>5, self.y>>5, self.get_unit_positions())
-        #if self.formation.state != FormationState.state_formed:
-        #    self.format_units()
-        elif self.order_state == OrderState.state_waiting_for_target:            
+        if self.order_state == OrderState.state_waiting_for_target:            
             # calculate goals for each unit
             # calculate routes for each unit to move based on commander unit position
             self.routes = self.get_valid_routes()
@@ -205,7 +213,13 @@ class Squad(Entity):
             #    self.order_state = OrderState.state_waiting_for_target
         if self.order_state == OrderState.state_moving_to_target and self.commander.movement_state == MovementState.state_reached_goal:
             print("Reached destination")
+            self.formation.check_formation(self.x>>5, self.y>>5, self.get_unit_positions())
+            if self.formation.state != FormationState.state_formed:
+                if not self.formation.is_valid_formation_positions(self.x>>5, self.y>>5):
+                    self.formation.set_orientation(1 if self.formation.orientation == 0 else 0)
             self.order_state = OrderState.state_waiting_for_order        
+        if self.formation.state != FormationState.state_formed and self.level.updates % 3 == 0:
+            self.format_units()
 
     def distance(self, start, goal):
         return math.sqrt((goal[0] - start[0])**2 + (goal[1] - start[1])**2)
@@ -216,7 +230,8 @@ class Squad(Entity):
 
 class Formation(object):
 
-    def __init__(self, state, unit_count, orientation):
+    def __init__(self, level, state, unit_count, orientation):
+        self.level = level
         self.state = state
         self.unit_count = unit_count
         self.set_orientation(orientation)
@@ -238,6 +253,22 @@ class Formation(object):
         self.avg_x /= self.unit_count
         self.avg_y /= self.unit_count
         return positions
+
+    def is_valid_formation_positions(self, x, y):
+        if self.state == FormationState.state_forming:
+            return
+        position_offset = 1 if self.unit_count % 2 == 0 else 0
+        if self.orientation == 0:
+            x_offset = 0
+            y_offset = position_offset
+        else:
+            x_offset = position_offset
+            y_offset = 0
+        formation_positions = [(x + pos[0] + x_offset, y + pos[1] + y_offset) for pos in self.positions]
+        for pos in formation_positions:
+            if self.level.get_tile(pos[0], pos[1]).solid:
+                return False
+        return True
 
     def set_orientation(self, orientation):
         self.orientation = orientation
